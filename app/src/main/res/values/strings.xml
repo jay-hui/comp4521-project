@@ -3,4 +3,9 @@
     <string name="button_drink_water">Drink Water</string>
     <string name="toast_drink_water">You drank a cup of water!</string>
     <string name="label_water_amount">You drank 0 cups of water today!</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="statistics">Statistics</string>
+    <string name="settings">Settings</string>
+    <string name="home">Home</string>
 </resources>

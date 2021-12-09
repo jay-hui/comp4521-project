@@ -16,17 +16,14 @@ import androidx.navigation.ui.NavigationUI;
 
 public class MainActivity extends AppCompatActivity {
 
-    private int waterCount = 0;
+    private int cupsOfWaterLeft = 8;
     private TextView labelWaterAmount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d("MainActivity", "main activity started");
+        Log.d("MainActivity", "onCreate");
         setContentView(R.layout.activity_main);
-        labelWaterAmount = findViewById(R.id.label_water_amount);
-
-
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
@@ -41,15 +38,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public String getHomeInfo() {
-        return "You drank " + waterCount + " cups of water today!";
+        Log.d("MainActivity", "getHomeInfo");
+        return String.format(getResources().getString(R.string.label_water_left), cupsOfWaterLeft);
     }
 
     public void drinkWater(View view) {
+        Log.d("MainActivity", "drinkWater");
+        if (cupsOfWaterLeft > 0) cupsOfWaterLeft--;
         labelWaterAmount = findViewById(R.id.label_water_amount);
-        waterCount++;
-        String newText = "You drank " + waterCount + " cups of water today!";
-        labelWaterAmount.setText(newText);
-
+        labelWaterAmount.setText(getHomeInfo());
         Toast toast = Toast.makeText(this, R.string.toast_drink_water, Toast.LENGTH_SHORT);
         toast.show();
     }

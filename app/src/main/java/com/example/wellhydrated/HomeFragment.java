@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -24,20 +25,27 @@ public class HomeFragment extends Fragment {
         HomeFragment fragment = new HomeFragment();
         Bundle args = new Bundle();
         fragment.setArguments(args);
-        Log.d("MainFragment", "created new instance");
+        Log.d("HomeFragment", "created new instance");
         return fragment;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d("MainFragment", "created main fragment");
+        Log.d("HomeFragment", "created home fragment");
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        TextView labelWaterAmount = getView().findViewById(R.id.label_water_amount);
+        labelWaterAmount.setText(((MainActivity)getActivity()).getHomeInfo());
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        Log.d("MainFragment", "created main fragment view");
+        Log.d("HomeFragment", "created home fragment view");
         return inflater.inflate(R.layout.fragment_home, container, false);
     }
 }

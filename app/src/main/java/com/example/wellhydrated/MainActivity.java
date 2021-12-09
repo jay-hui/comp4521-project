@@ -22,9 +22,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d("MainActivity", "main activity started");
         setContentView(R.layout.activity_main);
         labelWaterAmount = findViewById(R.id.label_water_amount);
-        Log.d("MainActivity", "main activity started");
+
+
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
@@ -33,16 +35,13 @@ public class MainActivity extends AppCompatActivity {
                 R.id.statisticsFragment,
                 R.id.settingsFragment
         ).build();
-
         NavigationUI.setupWithNavController(bottomNavigationView, navController);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
 
     }
 
-    public void getHomeInfo() {
-        labelWaterAmount = findViewById(R.id.label_water_amount);
-        String newText = "You drank " + waterCount + " cups of water today!";
-        labelWaterAmount.setText(newText);
+    public String getHomeInfo() {
+        return "You drank " + waterCount + " cups of water today!";
     }
 
     public void drinkWater(View view) {

@@ -1,25 +1,28 @@
 package com.example.wellhydrated;
+
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 public class DBHelper extends SQLiteOpenHelper {
     public static final int DATABASE_VERSION = 1;
-    public static final String DATABASE_NAME = "DrinkWaterHistory.db";
-    public static final String TABLE_NAME = "History";
+    public static final String DATABASE_NAME = "WellHydratedHistory.db";
 
     public DBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        Log.d("DBHelper", "constructor");
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        final String SQL_CREATE_ENTRIES = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME +
+        final String SQL_CREATE_ENTRIES = "CREATE TABLE IF NOT EXISTS " + WellHydratedDBEntries.TABLE_NAME +
                                                 "(id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                                                "drink_date TEXT," +
-                                                "drink_time TEXT," +
-                                                "amount INTEGER)";
+                                                WellHydratedDBEntries.COLUMN_NAME_DRINK_DATE + " TEXT," +
+                                                WellHydratedDBEntries.COLUMN_NAME_DRINK_TIME + " TEXT," +
+                                                WellHydratedDBEntries.COLUMN_NAME_AMOUNT + " INTEGER)";
         db.execSQL(SQL_CREATE_ENTRIES);
+        Log.d("DBHelper", "onCreate: " + SQL_CREATE_ENTRIES);
     }
 
     @Override

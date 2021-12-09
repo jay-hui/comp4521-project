@@ -1,5 +1,9 @@
 package com.example.wellhydrated;
 
+import android.content.ContentValues;
+import android.database.sqlite.SQLiteDatabase;
+import android.icu.text.SimpleDateFormat;
+import android.icu.util.Calendar;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -14,10 +18,16 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
+import java.util.Date;
+import java.util.Locale;
+
 public class MainActivity extends AppCompatActivity {
 
     private int cupsOfWaterLeft = 8;
     private TextView labelWaterAmount;
+
+    private DBHelper dbHelper;
+    private SQLiteDatabase db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +45,10 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(bottomNavigationView, navController);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
 
+        // Initialization can only be done in/after onCreate()
+        dbHelper = new DBHelper(getApplicationContext());
+        db = dbHelper.getWritableDatabase();
+
     }
 
     public String getHomeInfo() {
@@ -49,6 +63,20 @@ public class MainActivity extends AppCompatActivity {
         labelWaterAmount.setText(getHomeInfo());
         Toast toast = Toast.makeText(this, R.string.toast_drink_water, Toast.LENGTH_SHORT);
         toast.show();
+
+        Date currentDateTime = new Date();
+        String currentDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(currentDateTime);
+        String currentTime = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(currentDateTime);
+
+        // Create a new map of values, where column names are the keys
+        ContentValues values = new ContentValues();
+        values.put(WellHydratedDBEntries.COLUMN_NAME_DRINK_DATE, currentDate);
+        values.put(WellHydratedDBEntries.COLUMN_NAME_DRINK_TIME, currentTime);
+        values.put(WellHydratedDBEntries.COLUMN_NAME_AMOUNT, 250); // hard-coded to 250 temporarily
+
+        // Insert a record into the Database
+        db.insert(WellHydratedDBEntries.TABLE_NAME, null, values);
+        Log.d("DB","One record inserted");
     }
 
 }

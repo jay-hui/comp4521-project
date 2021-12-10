@@ -3,7 +3,6 @@ package com.example.wellhydrated;
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
 import android.icu.text.SimpleDateFormat;
-import android.icu.util.Calendar;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -26,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
     private int cupsOfWaterLeft = 8;
     private TextView labelWaterAmount;
 
-    private DBHelper dbHelper;
+    protected DBHelper dbHelper;
     private SQLiteDatabase db;
 
     @Override
@@ -79,4 +78,21 @@ public class MainActivity extends AppCompatActivity {
         Log.d("DB","One record inserted");
     }
 
+    public void updateGraph0(View view) {
+        StatisticsFragment statsFragment = (StatisticsFragment) getSupportFragmentManager().findFragmentById(2131231023);
+        if (statsFragment == null) {
+            Log.d("OMG", "NULLLLLLLLL");
+        }
+        statsFragment.updateGraph(0);
+    }
+
+    public void updateGraph1(View view) {
+        StatisticsFragment statsFragment = (StatisticsFragment) getSupportFragmentManager().findFragmentById(R.id.statisticsFragment);
+        statsFragment.updateGraph(1);
+    }
+
+    public void updateGraph2(View view) {
+        StatisticsFragment statsFragment = (StatisticsFragment) getSupportFragmentManager().findFragmentById(R.id.statisticsFragment);
+        statsFragment.updateGraph(2);
+    }
 }

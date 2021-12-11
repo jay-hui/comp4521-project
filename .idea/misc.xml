@@ -3,6 +3,9 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/Leung/comp4521-project/app/src/main/res/layout/activity_main.xml" value="0.20104166666666667" />
+        <entry key="..\:/Users/Leung/comp4521-project/app/src/main/res/layout/fragment_home.xml" value="0.20104166666666667" />
+        <entry key="..\:/Users/Leung/comp4521-project/app/src/main/res/layout/fragment_statistics.xml" value="0.33" />
         <entry key="..\:/~my_stuff/code/android/WellHydrated/app/src/main/res/layout/activity_main.xml" value="0.33" />
         <entry key="..\:/~my_stuff/code/android/WellHydrated/app/src/main/res/layout/fragment_home.xml" value="0.20520833333333333" />
         <entry key="..\:/~my_stuff/code/android/WellHydrated/app/src/main/res/layout/fragment_main.xml" value="0.18" />

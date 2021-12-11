@@ -17,7 +17,7 @@ public class DBHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         final String SQL_CREATE_ENTRIES = "CREATE TABLE IF NOT EXISTS " + WellHydratedDBEntries.TABLE_NAME +
-                                                "(id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                                "("+ WellHydratedDBEntries.COLUMN_NAME_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                                                 WellHydratedDBEntries.COLUMN_NAME_DRINK_DATE + " TEXT," +
                                                 WellHydratedDBEntries.COLUMN_NAME_DRINK_TIME + " TEXT," +
                                                 WellHydratedDBEntries.COLUMN_NAME_AMOUNT + " INTEGER)";

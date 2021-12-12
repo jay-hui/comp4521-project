@@ -1,22 +1,13 @@
 package com.example.wellhydrated;
 
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
-import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.helper.StaticLabelsFormatter;
-import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.LineGraphSeries;
-
-import java.util.ArrayList;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -72,7 +63,8 @@ public class StatisticsFragment extends Fragment {
         super.onStart();
 
         dbReadable = ((MainActivity)getActivity()).dbHelper.getReadableDatabase();
-        updateGraph(0);
+
+        ((MainActivity)getActivity()).updateGraph(0);
     }
 
     @Override
@@ -81,106 +73,4 @@ public class StatisticsFragment extends Fragment {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_statistics, container, false);
     }
-
-    // SQL Queries:
-    // TODO: What if the user skips WellHydrated for a few days? My opinion is to fill it up with amount=0 records, during onStart() of the app
-
-    //===================================Past 7 Days==================================================
-    //SELECT drink_date, SUM(amount) AS total_amount
-    //FROM wellhydrated_records
-    //WHERE drink_date BETWEEN (SELECT date("now", "-6 day")) AND (SELECT date("now"))
-    //GROUP BY drink_date
-    //ORDER BY drink_date
-    //================================================================================================
-
-    //===================================Past 30 Days=================================================
-    //SELECT drink_date, SUM(amount) AS total_amount
-    //FROM wellhydrated_records
-    //WHERE drink_date BETWEEN (SELECT date("now", "-29 day")) AND (SELECT date("now"))
-    //GROUP BY drink_date
-    //ORDER BY drink_date
-    //================================================================================================
-
-    //===================================Past 12 Months===============================================
-    //SELECT strftime("%Y-%m", drink_date) AS ym, avg(total_amount)
-    //FROM (SELECT drink_date, SUM(amount) AS total_amount
-    //      FROM wellhydrated_records
-    //      WHERE drink_date BETWEEN (SELECT date("now", "-11 month", "start of month")) AND (SELECT date("now"))
-    //      GROUP BY drink_date)
-    //GROUP BY ym
-    //ORDER BY ym
-    //================================================================================================
-
-    public void updateGraph(int viewMode) {
-        String query;
-
-        // Pick the right SQL query first
-        if (viewMode == 0) {
-            // Daily amount drunk in the past 7 days
-            query = "SELECT drink_date, SUM(amount) AS total_amount " +
-                    "FROM wellhydrated_records " +
-                    "WHERE drink_date BETWEEN (SELECT date('now', '-6 day')) AND (SELECT date('now')) " +
-                    "GROUP BY drink_date " +
-                    "ORDER BY drink_date";
-
-        } else if (viewMode == 1) {
-            // Daily amount drunk in the past 30 days
-            query = "SELECT drink_date, SUM(amount) AS total_amount " +
-                    "FROM wellhydrated_records " +
-                    "WHERE drink_date BETWEEN (SELECT date('now', '-29 day')) AND (SELECT date('now')) " +
-                    "GROUP BY drink_date " +
-                    "ORDER BY drink_date";
-
-        } else if (viewMode == 2) {
-            // Average of daily amount for each months in the past 12 months
-            query = "SELECT strftime('%Y-%m', drink_date) AS ym, avg(total_amount) " +
-                    "FROM (SELECT drink_date, SUM(amount) AS total_amount " +
-                    "      FROM wellhydrated_records" +
-                    "      WHERE drink_date BETWEEN (SELECT date('now', '-11 month', 'start of month')) AND (SELECT date('now')) " +
-                    "      GROUP BY drink_date) " +
-                    "GROUP BY ym " +
-                    "ORDER BY ym";
-        } else
-            // Invalid viewMode
-            return;
-
-        Cursor cursor = dbReadable.rawQuery(query, null);
-        int cursorSize = cursor.getCount();
-
-        if (cursorSize == 0) {
-            // TODO: Handle when there is no data retrieved from the query
-        }
-
-        // Assumed cursorSize != 0
-        DataPoint[] dataPoints = new DataPoint[cursorSize];
-        String[] xLabels = new String[cursorSize];
-
-        int x = 0;
-        while (cursor.moveToNext()) {
-            String label = cursor.getString(0);
-            xLabels[x] = label;
-
-            int y = cursor.getInt(1);
-            dataPoints[x] = new DataPoint(x, y);
-
-            x++;
-        }
-        cursor.close();
-
-        GraphView graph = (GraphView) getView().findViewById(R.id.statsGraph);
-        // Remove the previous graph, if any (?)
-        graph.removeAllSeries();
-
-        LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(dataPoints);
-        graph.addSeries(series);
-
-        // Use static labels for horizontal (and vertical) labels
-        //StaticLabelsFormatter staticLabelsFormatter = new StaticLabelsFormatter(graph);
-        //staticLabelsFormatter.setHorizontalLabels(xLabels);
-        //graph.getGridLabelRenderer().setLabelFormatter(staticLabelsFormatter);
-        int haha = getId();//2131231023
-        Log.d("TAGGGGGGGGGGG", String.valueOf(haha));
-    }
-
-
 }

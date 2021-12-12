@@ -1,5 +1,6 @@
 package com.example.wellhydrated;
 
+import android.animation.ObjectAnimator;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -8,6 +9,7 @@ import android.icu.util.Calendar;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.LinearInterpolator;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,6 +23,7 @@ import com.jjoe64.graphview.series.OnDataPointTapListener;
 import com.jjoe64.graphview.series.Series;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -33,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
 
     private int cupsOfWaterLeft = 8;
     private TextView labelWaterAmount;
+    View waterView;
 
     protected DBHelper dbHelper;
     private SQLiteDatabase db;
@@ -67,7 +71,20 @@ public class MainActivity extends AppCompatActivity {
 
     public void drinkWater(View view) {
         Log.d("MainActivity", "drinkWater");
-        if (cupsOfWaterLeft > 0) cupsOfWaterLeft--;
+
+        waterView = findViewById(R.id.water_view);
+        ConstraintLayout homeLayout = findViewById(R.id.home_layout);
+
+        if (cupsOfWaterLeft > 0) {
+            if (waterView.getTranslationY() > homeLayout.getHeight())
+                waterView.setTranslationY(homeLayout.getHeight());
+            ObjectAnimator anim = ObjectAnimator.ofFloat(waterView, view.TRANSLATION_Y, waterView.getTranslationY(), waterView.getTranslationY() - (homeLayout.getHeight() * 0.125f));
+            anim.setDuration(500);
+            anim.setInterpolator(new LinearInterpolator());
+            anim.start();
+
+            cupsOfWaterLeft--;
+        }
         labelWaterAmount = findViewById(R.id.label_water_amount);
         labelWaterAmount.setText(getHomeInfo());
         Toast toast = Toast.makeText(this, R.string.toast_drink_water, Toast.LENGTH_SHORT);

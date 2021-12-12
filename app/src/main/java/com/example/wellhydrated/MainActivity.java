@@ -2,8 +2,10 @@ package com.example.wellhydrated;
 
 import android.animation.ObjectAnimator;
 import android.content.ContentValues;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.icu.text.SimpleDateFormat;
+import android.icu.util.Calendar;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -12,6 +14,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.helper.StaticLabelsFormatter;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.DataPointInterface;
+import com.jjoe64.graphview.series.LineGraphSeries;
+import com.jjoe64.graphview.series.OnDataPointTapListener;
+import com.jjoe64.graphview.series.Series;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -52,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
         dbHelper = new DBHelper(getApplicationContext());
         db = dbHelper.getWritableDatabase();
 
+        fillEmptyRecords();
     }
 
     public String getHomeInfo() {
@@ -92,24 +102,40 @@ public class MainActivity extends AppCompatActivity {
 
         // Insert a record into the Database
         db.insert(WellHydratedDBEntries.TABLE_NAME, null, values);
-        Log.d("DB","One record inserted");
+        Log.d("DB","One record inserted for " + currentDate + " " + currentTime);
     }
 
-    public void updateGraph0(View view) {
-        StatisticsFragment statsFragment = (StatisticsFragment) getSupportFragmentManager().findFragmentById(R.id.statisticsFragment);
-        if (statsFragment == null) {
-            Log.d("OMG", "NULLLLLLLLL");
+    public void fillEmptyRecords() {
+        Calendar date = Calendar.getInstance();
+        // Check the past 365 days
+        for (int i= 1; i <= 364; i++) {
+            date.add(Calendar.DATE, -1);
+
+            int year = date.get(Calendar.YEAR);
+            String month = String.valueOf(date.get(Calendar.MONTH) + 1); // It ranges from 0 - 11
+            String day = String.valueOf(date.get(Calendar.DAY_OF_MONTH));
+
+            // "1" to "01", "5" to "05", etc
+            if (month.length() == 1) month = "0" + month;
+            if (day.length() == 1) day = "0" + day;
+
+            String pastDate = String.format("%d-%s-%s", year, month, day);
+
+            String query = "SELECT * " +
+                    "FROM " + WellHydratedDBEntries.TABLE_NAME + " " +
+                    "WHERE " + WellHydratedDBEntries.COLUMN_NAME_DRINK_DATE + " = '" + pastDate + "'";
+            Cursor cursor = db.rawQuery(query, null);
+
+            if (cursor.getCount() == 0) { // No records found => The user skipped that day
+                ContentValues values = new ContentValues();
+                values.put(WellHydratedDBEntries.COLUMN_NAME_DRINK_DATE, pastDate);
+                // drink_time = NULL
+                values.put(WellHydratedDBEntries.COLUMN_NAME_AMOUNT, 0);
+
+                db.insert(WellHydratedDBEntries.TABLE_NAME, null, values);
+                Log.d("DB","One empty record inserted for " + pastDate);
+            }
+
         }
-        statsFragment.updateGraph(0);
-    }
-
-    public void updateGraph1(View view) {
-        StatisticsFragment statsFragment = (StatisticsFragment) getSupportFragmentManager().findFragmentById(R.id.statisticsFragment);
-        statsFragment.updateGraph(1);
-    }
-
-    public void updateGraph2(View view) {
-        StatisticsFragment statsFragment = (StatisticsFragment) getSupportFragmentManager().findFragmentById(R.id.statisticsFragment);
-        statsFragment.updateGraph(2);
     }
 }

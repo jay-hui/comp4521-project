@@ -200,8 +200,10 @@ public class StatisticsFragment extends Fragment {
             if (yAxisSize == 0) yAxisSize = (float) series1.getHighestValueY();
             if (xAxisSize == 0) xAxisSize = (float) series1.getHighestValueX();
 
+            int bottom = graph.getTop() + graph.getGraphContentHeight();
+
             // Programmatically trigger the tooltip at an appropriate position
-            graph.performLongClick((float) dataPoint.getX() / xAxisSize * (float) graph.getGraphContentWidth(), graph.getBottom() - (float) dataPoint.getY() / yAxisSize * (float) graph.getGraphContentHeight());
+            graph.performLongClick((float) dataPoint.getX() / xAxisSize * (float) graph.getGraphContentWidth(), bottom - (float) dataPoint.getY() / yAxisSize * (float) graph.getGraphContentHeight());
 
         });
         graph.addSeries(series);

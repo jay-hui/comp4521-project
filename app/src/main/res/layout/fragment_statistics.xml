@@ -14,40 +14,16 @@
         tools:layout_editor_absoluteX="1dp"
         tools:layout_editor_absoluteY="1dp">
 
+        <Spinner
+            android:id="@+id/spinnerGraphTypes"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:layout_marginHorizontal="10dp" />
+
         <com.jjoe64.graphview.GraphView
             android:layout_width="match_parent"
             android:layout_height="200dip"
             android:id="@+id/statsGraph" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="157dp"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/button7Days"
-                android:layout_width="103dp"
-                android:layout_height="110dp"
-                android:layout_weight="1"
-                android:onClick="updateGraph0"
-                android:text="Past 7 Days" />
-
-            <Button
-                android:id="@+id/button30Days"
-                android:layout_width="113dp"
-                android:layout_height="124dp"
-                android:layout_weight="1"
-                android:onClick="updateGraph1"
-                android:text="Past 30 Days" />
-
-            <Button
-                android:id="@+id/button12Months"
-                android:layout_width="94dp"
-                android:layout_height="109dp"
-                android:layout_weight="1"
-                android:onClick="updateGraph2"
-                android:text="Past 12 Months" />
-        </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
             android:layout_width="match_parent"

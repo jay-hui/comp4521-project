@@ -200,8 +200,10 @@ public class StatisticsFragment extends Fragment {
             if (yAxisSize == 0) yAxisSize = (float) series1.getHighestValueY();
             if (xAxisSize == 0) xAxisSize = (float) series1.getHighestValueX();
 
+            int bottom = graph.getTop() + graph.getGraphContentHeight();
+
             // Programmatically trigger the tooltip at an appropriate position
-            graph.performLongClick((float) dataPoint.getX() / xAxisSize * (float) graph.getGraphContentWidth(), graph.getBottom() - (float) dataPoint.getY() / yAxisSize * (float) graph.getGraphContentHeight());
+            graph.performLongClick((float) dataPoint.getX() / xAxisSize * (float) graph.getGraphContentWidth(), bottom - (float) dataPoint.getY() / yAxisSize * (float) graph.getGraphContentHeight());
 
         });
         graph.addSeries(series);
@@ -214,5 +216,30 @@ public class StatisticsFragment extends Fragment {
         staticLabelsFormatter.setHorizontalLabels(xLabels);
         graph.getGridLabelRenderer().setLabelFormatter(staticLabelsFormatter);
         graph.getGridLabelRenderer().setHorizontalLabelsVisible(false);
+    }
+
+    public Cursor getHistory(int year, int month) {
+        String startOfMonth;
+        if (month >=1 && month <= 9)
+            startOfMonth = String.format("%d-0%d-01", year, month);
+        else if (month >= 10 & month <= 12)
+            startOfMonth = String.format("%d-%d-01", year, month);
+        else
+            // Invalid month
+            return null;
+
+        //SELECT drink_date, SUM(amount) AS total_amount
+        //FROM wellhydrated_records
+        //WHERE drink_date BETWEEN (SELECT date("now", "-6 day")) AND (SELECT date("now"))
+        //      AND amount <> 0?
+        //GROUP BY drink_date
+        //ORDER BY drink_date
+        String query = "SELECT " + WellHydratedDBEntries.COLUMN_NAME_DRINK_DATE + ", SUM(" + WellHydratedDBEntries.COLUMN_NAME_AMOUNT + ") AS total_amount " +
+                "FROM " + WellHydratedDBEntries.TABLE_NAME + " " +
+                "WHERE " + WellHydratedDBEntries.COLUMN_NAME_DRINK_DATE + " BETWEEN " + startOfMonth + " AND (SELECT date('" + startOfMonth + "', '+1 month', '-1 day')) " +
+                "GROUP BY " + WellHydratedDBEntries.COLUMN_NAME_DRINK_DATE + " " +
+                "ORDER BY " + WellHydratedDBEntries.COLUMN_NAME_DRINK_DATE;
+
+        return dbReadable.rawQuery(query, null);
     }
 }

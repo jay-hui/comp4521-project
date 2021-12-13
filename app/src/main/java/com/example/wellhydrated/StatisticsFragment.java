@@ -126,6 +126,7 @@ public class StatisticsFragment extends Fragment {
 
                         Log.d("DatePicker", String.format("%d-%d selected", year, month));
                         Cursor history = getHistory(year, month);
+                        Log.d("CursorSize", String.valueOf(history.getCount()));
 
                         if (history.getCount() == 0) {
                             // Hide the recycler view
@@ -297,6 +298,7 @@ public class StatisticsFragment extends Fragment {
             // Invalid month
             return null;
 
+        Log.d("DB", "startOfMonth is " + startOfMonth);
         //SELECT drink_date, SUM(amount) AS total_amount
         //FROM wellhydrated_records
         //WHERE drink_date BETWEEN (SELECT date("now", "-6 day")) AND (SELECT date("now"))
@@ -305,11 +307,11 @@ public class StatisticsFragment extends Fragment {
         //ORDER BY drink_date
         String query = "SELECT " + WellHydratedDBEntries.COLUMN_NAME_DRINK_DATE + ", SUM(" + WellHydratedDBEntries.COLUMN_NAME_AMOUNT + ") AS total_amount " +
                 "FROM " + WellHydratedDBEntries.TABLE_NAME + " " +
-                "WHERE " + WellHydratedDBEntries.COLUMN_NAME_DRINK_DATE + " BETWEEN " + startOfMonth + " AND (SELECT date('" + startOfMonth + "', '+1 month', '-1 day')) " +
+                "WHERE " + WellHydratedDBEntries.COLUMN_NAME_DRINK_DATE + " BETWEEN '" + startOfMonth + "' AND (SELECT date('" + startOfMonth + "', '+1 month', '-1 day')) " +
                         "AND " + WellHydratedDBEntries.COLUMN_NAME_AMOUNT + " <> 0 " +
                 "GROUP BY " + WellHydratedDBEntries.COLUMN_NAME_DRINK_DATE + " " +
                 "ORDER BY " + WellHydratedDBEntries.COLUMN_NAME_DRINK_DATE;
-
+        Log.d("DB", "query is " + query);
         return dbReadable.rawQuery(query, null);
     }
 }

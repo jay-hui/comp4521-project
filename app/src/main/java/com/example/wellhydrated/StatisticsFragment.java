@@ -1,17 +1,24 @@
 package com.example.wellhydrated;
 
+import android.animation.Animator;
+import android.app.DatePickerDialog;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.Spinner;
 
 import com.jjoe64.graphview.GraphView;
@@ -71,11 +78,12 @@ public class StatisticsFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
+        MainActivity mainActivity = (MainActivity) getActivity();
 
-        dbReadable = ((MainActivity)getActivity()).dbHelper.getReadableDatabase();
+        dbReadable = mainActivity.dbHelper.getReadableDatabase();
         updateGraph(0);
 
-        Spinner spinner = (Spinner) ((MainActivity)getActivity()).findViewById(R.id.spinnerGraphTypes);
+        Spinner spinner = mainActivity.findViewById(R.id.spinnerGraphTypes);
         // Create an ArrayAdapter using the string array and a default spinner layout
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this.getContext(),
                 R.array.stats_graph_types_array, android.R.layout.simple_spinner_item);
@@ -92,6 +100,67 @@ public class StatisticsFragment extends Fragment {
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
                 // Do nothing
+            }
+        });
+
+        final RecyclerView mRecyclerView = mainActivity.findViewById(R.id.recyclerviewHistory);
+
+        Button buttonYearMonth = mainActivity.findViewById(R.id.buttonYearMonthPicker);
+        buttonYearMonth.setOnClickListener(new View.OnClickListener() {
+            final View textView = mainActivity.findViewById(R.id.noRecordMsgTextView);
+
+            @Override
+            public void onClick(View v) {
+                YearMonthPickerDialog pd = new YearMonthPickerDialog();
+                pd.setListener(new DatePickerDialog.OnDateSetListener() {
+                    @Override
+                    public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+                        // Range: [0, 11] --> [1, 12]
+                        month++;
+
+                        // Change the button text
+                        if (month <= 9)
+                            buttonYearMonth.setText(String.format("%d-0%d", year, month));
+                        else
+                            buttonYearMonth.setText(String.format("%d-%d", year, month));
+
+                        Log.d("DatePicker", String.format("%d-%d selected", year, month));
+                        Cursor history = getHistory(year, month);
+
+                        if (history.getCount() == 0) {
+                            // Hide the recycler view
+                            mRecyclerView.setVisibility(View.INVISIBLE);
+
+                            // get the center for the clipping circle
+                            int cx = textView.getWidth() / 2;
+                            int cy = textView.getHeight() / 2;
+
+                            // get the final radius for the clipping circle
+                            float finalRadius = (float) Math.hypot(cx, cy);
+
+                            // create the animator for this view (the start radius is zero)
+                            Animator anim = ViewAnimationUtils.createCircularReveal(textView, cx, cy, 0f, finalRadius);
+
+                            // make the message visible and start the animation
+                            textView.setVisibility(View.VISIBLE);
+                            anim.start();
+
+                        } else {
+                            // TODO: Set up the RecyclerView
+                            HistoryAdapter mAdapter = new HistoryAdapter(getContext(), history);
+                            mRecyclerView.setAdapter(mAdapter);
+                            mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+
+                            mainActivity.findViewById(R.id.noRecordMsgTextView).setVisibility(View.INVISIBLE);
+                            mRecyclerView.setVisibility(View.VISIBLE);
+                        }
+
+
+                        //history.close();
+                    }
+                });
+
+                pd.show(mainActivity.getSupportFragmentManager(), "MonthYearPickerDialog");
             }
         });
     }
@@ -231,12 +300,13 @@ public class StatisticsFragment extends Fragment {
         //SELECT drink_date, SUM(amount) AS total_amount
         //FROM wellhydrated_records
         //WHERE drink_date BETWEEN (SELECT date("now", "-6 day")) AND (SELECT date("now"))
-        //      AND amount <> 0?
+        //      AND amount <> 0
         //GROUP BY drink_date
         //ORDER BY drink_date
         String query = "SELECT " + WellHydratedDBEntries.COLUMN_NAME_DRINK_DATE + ", SUM(" + WellHydratedDBEntries.COLUMN_NAME_AMOUNT + ") AS total_amount " +
                 "FROM " + WellHydratedDBEntries.TABLE_NAME + " " +
                 "WHERE " + WellHydratedDBEntries.COLUMN_NAME_DRINK_DATE + " BETWEEN " + startOfMonth + " AND (SELECT date('" + startOfMonth + "', '+1 month', '-1 day')) " +
+                        "AND " + WellHydratedDBEntries.COLUMN_NAME_AMOUNT + " <> 0 " +
                 "GROUP BY " + WellHydratedDBEntries.COLUMN_NAME_DRINK_DATE + " " +
                 "ORDER BY " + WellHydratedDBEntries.COLUMN_NAME_DRINK_DATE;
 

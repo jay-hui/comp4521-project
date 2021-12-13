@@ -34,7 +34,7 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
-    private int cupsOfWaterLeft = 8;
+    private int cupsOfWaterLeft;
     private TextView labelWaterAmount;
     View waterView;
 
@@ -58,8 +58,10 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
 
         // Initialization can only be done in/after onCreate()
+        waterView = findViewById(R.id.water_view);
         dbHelper = new DBHelper(getApplicationContext());
         db = dbHelper.getWritableDatabase();
+        cupsOfWaterLeft = calCupsOfWaterLeft();
 
         fillEmptyRecords();
     }
@@ -72,7 +74,25 @@ public class MainActivity extends AppCompatActivity {
     public void drinkWater(View view) {
         Log.d("MainActivity", "drinkWater");
 
-        waterView = findViewById(R.id.water_view);
+        Date currentDateTime = new Date();
+        String currentDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(currentDateTime);
+        String currentTime = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(currentDateTime);
+
+        // Create a new map of values, where column names are the keys
+        ContentValues values = new ContentValues();
+        values.put(WellHydratedDBEntries.COLUMN_NAME_DRINK_DATE, currentDate);
+        values.put(WellHydratedDBEntries.COLUMN_NAME_DRINK_TIME, currentTime);
+        values.put(WellHydratedDBEntries.COLUMN_NAME_AMOUNT, 250); // hard-coded to 250 temporarily
+
+        // Insert a record into the Database
+        db.insert(WellHydratedDBEntries.TABLE_NAME, null, values);
+        Log.d("DB","One record inserted for " + currentDate + " " + currentTime);
+        cupsOfWaterLeft = calCupsOfWaterLeft();
+
+        waterLevelRise(1);
+
+        //waterView = findViewById(R.id.water_view);
+
         ConstraintLayout homeLayout = findViewById(R.id.home_layout);
 
         if (cupsOfWaterLeft > 0) {
@@ -90,19 +110,6 @@ public class MainActivity extends AppCompatActivity {
         Toast toast = Toast.makeText(this, R.string.toast_drink_water, Toast.LENGTH_SHORT);
         toast.show();
 
-        Date currentDateTime = new Date();
-        String currentDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(currentDateTime);
-        String currentTime = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(currentDateTime);
-
-        // Create a new map of values, where column names are the keys
-        ContentValues values = new ContentValues();
-        values.put(WellHydratedDBEntries.COLUMN_NAME_DRINK_DATE, currentDate);
-        values.put(WellHydratedDBEntries.COLUMN_NAME_DRINK_TIME, currentTime);
-        values.put(WellHydratedDBEntries.COLUMN_NAME_AMOUNT, 250); // hard-coded to 250 temporarily
-
-        // Insert a record into the Database
-        db.insert(WellHydratedDBEntries.TABLE_NAME, null, values);
-        Log.d("DB","One record inserted for " + currentDate + " " + currentTime);
     }
 
     public void fillEmptyRecords() {
@@ -137,5 +144,30 @@ public class MainActivity extends AppCompatActivity {
             }
 
         }
+    }
+
+    public int calCupsOfWaterLeft() {
+        //SELECT *
+        //FROM wellhydrated_records
+        //WHERE drinkdate = (SELECT DATE('now', 'localtime')) AND amount <> 0
+        String query = "SELECT * FROM " + WellHydratedDBEntries.TABLE_NAME + " " +
+                       "WHERE " + WellHydratedDBEntries.COLUMN_NAME_DRINK_DATE + " =  (SELECT DATE('now', 'localtime')) AND " + WellHydratedDBEntries.COLUMN_NAME_AMOUNT + " <> 0";
+        int cupsDrunk = db.rawQuery(query, null).getCount();
+
+        if (cupsDrunk > 8)
+            return 0;
+        else
+            return 8 - cupsDrunk;
+    }
+
+    public void waterLevelRise(int n) {
+        ConstraintLayout homeLayout = findViewById(R.id.home_layout);
+
+        if (waterView.getTranslationY() > homeLayout.getHeight())
+            waterView.setTranslationY(homeLayout.getHeight());
+        ObjectAnimator anim = ObjectAnimator.ofFloat(waterView, waterView.TRANSLATION_Y, waterView.getTranslationY(), waterView.getTranslationY() - (homeLayout.getHeight() * 0.125f * n));
+        anim.setDuration(500);
+        anim.setInterpolator(new LinearInterpolator());
+        anim.start();
     }
 }

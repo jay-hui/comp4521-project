@@ -12,4 +12,9 @@
         <item>Daily Water Amount Drunk in the Past 30 Days</item>
         <item>Avg. Daily Water Amount Drunk in the Past 12 Months</item>
     </string-array>
+    <string name="history_title">Water Drinking History of </string>
+    <string name="general_year_month">YYYY-MM</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="no_record_found">No record found.</string>
 </resources>

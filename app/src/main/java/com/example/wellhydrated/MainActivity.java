@@ -111,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
         */
         labelWaterAmount = findViewById(R.id.label_water_amount);
         labelWaterAmount.setText(getHomeInfo());
-        Toast toast = Toast.makeText(this, R.string.toast_drink_water, Toast.LENGTH_SHORT);
+        Toast toast = Toast.makeText(this, String.format(getResources().getString(R.string.toast_drink_water), 250), Toast.LENGTH_SHORT);
         toast.show();
 
     }

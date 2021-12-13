@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     private int cupsOfWaterLeft = 8;
     private TextView labelWaterAmount;
     View waterView;
+    ImageView drowningManView;
 
     protected DBHelper dbHelper;
     private SQLiteDatabase db;
@@ -73,16 +75,21 @@ public class MainActivity extends AppCompatActivity {
         Log.d("MainActivity", "drinkWater");
 
         waterView = findViewById(R.id.water_view);
+        drowningManView = findViewById(R.id.drowning_man_view);
         ConstraintLayout homeLayout = findViewById(R.id.home_layout);
 
         if (cupsOfWaterLeft > 0) {
             if (waterView.getTranslationY() > homeLayout.getHeight())
-                waterView.setTranslationY(homeLayout.getHeight());
-            ObjectAnimator anim = ObjectAnimator.ofFloat(waterView, view.TRANSLATION_Y, waterView.getTranslationY(), waterView.getTranslationY() - (homeLayout.getHeight() * 0.125f));
+                waterView.setTranslationY(homeLayout.getHeight() - 300);
+            ObjectAnimator anim = ObjectAnimator.ofFloat(waterView, view.TRANSLATION_Y, waterView.getTranslationY(), cupsOfWaterLeft == 1 ? 0f : waterView.getTranslationY() - (homeLayout.getHeight() * 0.1f));
             anim.setDuration(500);
             anim.setInterpolator(new LinearInterpolator());
             anim.start();
 
+            anim = ObjectAnimator.ofFloat(drowningManView, view.TRANSLATION_Y, drowningManView.getTranslationY(), cupsOfWaterLeft == 1 ? -2000f : drowningManView.getTranslationY() - (homeLayout.getHeight() * 0.1f));
+            anim.setDuration(500);
+            anim.setInterpolator(new LinearInterpolator());
+            anim.start();
             cupsOfWaterLeft--;
         }
         labelWaterAmount = findViewById(R.id.label_water_amount);

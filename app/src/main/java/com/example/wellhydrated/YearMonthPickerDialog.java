@@ -35,7 +35,7 @@ public class YearMonthPickerDialog extends DialogFragment {
         // TODO: Handle the valid range of month of the current year
         monthPicker.setMinValue(1);
         monthPicker.setMaxValue(12);
-        monthPicker.setValue(cal.get(Calendar.MONTH));
+        monthPicker.setValue(cal.get(Calendar.MONTH) + 1);
 
         int year = cal.get(Calendar.YEAR);
         yearPicker.setMinValue(minYear);

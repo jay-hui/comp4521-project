@@ -7,6 +7,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -101,9 +103,10 @@ public class StatisticsFragment extends Fragment {
             }
         });
 
+        final RecyclerView mRecyclerView = mainActivity.findViewById(R.id.recyclerviewHistory);
+
         Button buttonYearMonth = mainActivity.findViewById(R.id.buttonYearMonthPicker);
         buttonYearMonth.setOnClickListener(new View.OnClickListener() {
-            final View recyclerView = mainActivity.findViewById(R.id.recyclerviewHistory);
             final View textView = mainActivity.findViewById(R.id.noRecordMsgTextView);
 
             @Override
@@ -126,7 +129,7 @@ public class StatisticsFragment extends Fragment {
 
                         if (history.getCount() == 0) {
                             // Hide the recycler view
-                            recyclerView.setVisibility(View.INVISIBLE);
+                            mRecyclerView.setVisibility(View.INVISIBLE);
 
                             // get the center for the clipping circle
                             int cx = textView.getWidth() / 2;
@@ -144,13 +147,16 @@ public class StatisticsFragment extends Fragment {
 
                         } else {
                             // TODO: Set up the RecyclerView
+                            HistoryAdapter mAdapter = new HistoryAdapter(getContext(), history);
+                            mRecyclerView.setAdapter(mAdapter);
+                            mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
                             mainActivity.findViewById(R.id.noRecordMsgTextView).setVisibility(View.INVISIBLE);
-                            recyclerView.setVisibility(View.VISIBLE);
+                            mRecyclerView.setVisibility(View.VISIBLE);
                         }
 
 
-                        history.close();
+                        //history.close();
                     }
                 });
 

@@ -51,8 +51,6 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
 
         // Initialization can only be done in/after onCreate()
-        //waterView = findViewById(R.id.water_view);
-        //drowningManView = findViewById(R.id.drowning_man_view);
         dbHelper = new DBHelper(getApplicationContext());
         db = dbHelper.getWritableDatabase();
         cupsOfWaterLeft = calCupsOfWaterLeft();
@@ -72,9 +70,6 @@ public class MainActivity extends AppCompatActivity {
     public void drinkWater(View view) {
         Log.d("MainActivity", "drinkWater");
 
-        //waterView = findViewById(R.id.water_view);
-        //drowningManView = findViewById(R.id.drowning_man_view);
-
         Date currentDateTime = new Date();
         String currentDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(currentDateTime);
         String currentTime = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(currentDateTime);
@@ -91,29 +86,11 @@ public class MainActivity extends AppCompatActivity {
         cupsOfWaterLeft = calCupsOfWaterLeft();
 
         waterLevelRise(1);
-        /*
-        ConstraintLayout homeLayout = findViewById(R.id.home_layout);
 
-        if (cupsOfWaterLeft > 0) {
-            if (waterView.getTranslationY() > homeLayout.getHeight())
-                waterView.setTranslationY(homeLayout.getHeight() - 300);
-            ObjectAnimator anim = ObjectAnimator.ofFloat(waterView, view.TRANSLATION_Y, waterView.getTranslationY(), cupsOfWaterLeft == 1 ? 0f : waterView.getTranslationY() - (homeLayout.getHeight() * 0.1f));
-            anim.setDuration(500);
-            anim.setInterpolator(new LinearInterpolator());
-            anim.start();
-
-            anim = ObjectAnimator.ofFloat(drowningManView, view.TRANSLATION_Y, drowningManView.getTranslationY(), cupsOfWaterLeft == 1 ? -2000f : drowningManView.getTranslationY() - (homeLayout.getHeight() * 0.1f));
-            anim.setDuration(500);
-            anim.setInterpolator(new LinearInterpolator());
-            anim.start();
-            cupsOfWaterLeft--;
-        }
-        */
         labelWaterAmount = findViewById(R.id.label_water_amount);
         labelWaterAmount.setText(getHomeInfo());
         Toast toast = Toast.makeText(this, String.format(getResources().getString(R.string.toast_drink_water), 250), Toast.LENGTH_SHORT);
         toast.show();
-
     }
 
     public void fillEmptyRecords() {

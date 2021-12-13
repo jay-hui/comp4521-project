@@ -15,13 +15,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.helper.StaticLabelsFormatter;
-import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.DataPointInterface;
-import com.jjoe64.graphview.series.LineGraphSeries;
-import com.jjoe64.graphview.series.OnDataPointTapListener;
-import com.jjoe64.graphview.series.Series;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -37,8 +30,6 @@ public class MainActivity extends AppCompatActivity {
 
     private int cupsOfWaterLeft;
     private TextView labelWaterAmount;
-    View waterView;
-    ImageView drowningManView;
 
     protected DBHelper dbHelper;
     private SQLiteDatabase db;
@@ -60,7 +51,8 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
 
         // Initialization can only be done in/after onCreate()
-        waterView = findViewById(R.id.water_view);
+        //waterView = findViewById(R.id.water_view);
+        //drowningManView = findViewById(R.id.drowning_man_view);
         dbHelper = new DBHelper(getApplicationContext());
         db = dbHelper.getWritableDatabase();
         cupsOfWaterLeft = calCupsOfWaterLeft();
@@ -73,11 +65,15 @@ public class MainActivity extends AppCompatActivity {
         return String.format(getResources().getString(R.string.label_water_left), cupsOfWaterLeft);
     }
 
+    public int getCupsOfWaterLeft() {
+        return cupsOfWaterLeft;
+    }
+
     public void drinkWater(View view) {
         Log.d("MainActivity", "drinkWater");
 
-        waterView = findViewById(R.id.water_view);
-        drowningManView = findViewById(R.id.drowning_man_view);
+        //waterView = findViewById(R.id.water_view);
+        //drowningManView = findViewById(R.id.drowning_man_view);
 
         Date currentDateTime = new Date();
         String currentDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(currentDateTime);
@@ -94,8 +90,8 @@ public class MainActivity extends AppCompatActivity {
         Log.d("DB","One record inserted for " + currentDate + " " + currentTime);
         cupsOfWaterLeft = calCupsOfWaterLeft();
 
-        //waterLevelRise(1);
-        
+        waterLevelRise(1);
+        /*
         ConstraintLayout homeLayout = findViewById(R.id.home_layout);
 
         if (cupsOfWaterLeft > 0) {
@@ -112,6 +108,7 @@ public class MainActivity extends AppCompatActivity {
             anim.start();
             cupsOfWaterLeft--;
         }
+        */
         labelWaterAmount = findViewById(R.id.label_water_amount);
         labelWaterAmount.setText(getHomeInfo());
         Toast toast = Toast.makeText(this, R.string.toast_drink_water, Toast.LENGTH_SHORT);
@@ -169,10 +166,20 @@ public class MainActivity extends AppCompatActivity {
 
     public void waterLevelRise(int n) {
         ConstraintLayout homeLayout = findViewById(R.id.home_layout);
+        View waterView = findViewById(R.id.water_view);
+        View drowningManView = findViewById(R.id.drowning_man_view);
 
-        if (waterView.getTranslationY() > homeLayout.getHeight())
-            waterView.setTranslationY(homeLayout.getHeight());
-        ObjectAnimator anim = ObjectAnimator.ofFloat(waterView, waterView.TRANSLATION_Y, waterView.getTranslationY(), waterView.getTranslationY() - (homeLayout.getHeight() * 0.125f * n));
+        Log.d("homeLayout Height", String.valueOf(homeLayout.getHeight()));
+        if (waterView.getTranslationY() > homeLayout.getHeight()) waterView.setTranslationY(homeLayout.getHeight() - 300);
+
+        Log.d("waterView Y", String.valueOf(waterView.getTranslationY()));
+        ObjectAnimator anim = ObjectAnimator.ofFloat(waterView, waterView.TRANSLATION_Y, waterView.getTranslationY(), cupsOfWaterLeft == 0 ? 0f : waterView.getTranslationY() - (homeLayout.getHeight() * 0.1f * n));
+        anim.setDuration(500);
+        anim.setInterpolator(new LinearInterpolator());
+        anim.start();
+
+        Log.d("drowningManView Y", String.valueOf(drowningManView.getTranslationY()));
+        anim = ObjectAnimator.ofFloat(drowningManView, drowningManView.TRANSLATION_Y, drowningManView.getTranslationY(), cupsOfWaterLeft == 0 ? -2000f : drowningManView.getTranslationY() - (homeLayout.getHeight() * 0.1f * n));
         anim.setDuration(500);
         anim.setInterpolator(new LinearInterpolator());
         anim.start();

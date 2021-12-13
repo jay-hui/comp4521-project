@@ -4,6 +4,7 @@ import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,8 +35,23 @@ public class HomeFragment extends Fragment {
     public void onStart() {
         super.onStart();
         Log.d("HomeFragment", "onStart");
+
+        MainActivity mainActivity = (MainActivity) getActivity();
+
         TextView labelWaterAmount = getView().findViewById(R.id.label_water_amount);
-        labelWaterAmount.setText(((MainActivity)getActivity()).getHomeInfo());
+        labelWaterAmount.setText(mainActivity.getHomeInfo());
+
+        // Whenever the user switch to home tab, play the animation once
+        if (mainActivity.getCupsOfWaterLeft() < 8) {
+            Log.d("cupsOfWaterLeft", String.valueOf(mainActivity.getCupsOfWaterLeft()));
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    mainActivity.waterLevelRise(8 - mainActivity.getCupsOfWaterLeft());
+                }
+            }, 100);
+        }
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.example.wellhydrated;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
 import android.preference.PreferenceFragment;
@@ -60,6 +61,14 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
-    }
 
+        Preference resetButton = findPreference("db_reset");
+        resetButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                ((MainActivity) getActivity()).resetDB();
+                return true;
+            }
+        });
+    }
 }

@@ -20,7 +20,7 @@
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/settings_testing">
-        <ListPreference
+        <Preference
             android:defaultValue="0"
             android:dialogTitle="@string/db_reset"
             android:key="db_reset"

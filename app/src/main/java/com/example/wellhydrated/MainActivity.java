@@ -13,6 +13,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.icu.text.SimpleDateFormat;
 import android.icu.util.Calendar;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
@@ -23,14 +24,13 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import androidx.preference.PreferenceManager;
 
+import java.text.ParseException;
 import java.util.Date;
 import java.util.Locale;
 
@@ -39,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String CHANNEL_ID = "4521";
     private int cupsOfWaterLeft;
     private TextView labelWaterAmount;
+    private CountDownTimer countDownTimer;
 
     protected DBHelper dbHelper;
     private SQLiteDatabase db;
@@ -79,6 +80,12 @@ public class MainActivity extends AppCompatActivity {
         notificationManager.createNotificationChannel(channel);
     }
 
+    @Override
+    protected void onDestroy() {
+        clearCountDownTimer();
+        super.onDestroy();
+    }
+
     public String getHomeInfo() {
         Log.d("MainActivity", "getHomeInfo");
         return String.format(getResources().getString(R.string.label_water_left), cupsOfWaterLeft);
@@ -113,15 +120,16 @@ public class MainActivity extends AppCompatActivity {
         Toast toast = Toast.makeText(this, String.format(getResources().getString(R.string.toast_drink_water), 250), Toast.LENGTH_SHORT);
         toast.show();
 
-        // TODO: Cooldown for 1 hour
-
         Calendar cooldownEnd = Calendar.getInstance();
-        //cooldown.add(Calendar.HOUR_OF_DAY, 1);
+        // Cooldown for 1 hour
+        cooldownEnd.add(Calendar.HOUR_OF_DAY, 1);
+        //For Debug: 10s
+        //cooldownEnd.add(Calendar.SECOND, 10);
+        Log.d("CoolDown", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(cooldownEnd.getTime()));
 
-        //Debug: 10s
-        cooldownEnd.add(Calendar.SECOND, 10);
-        Log.d("Cooldown", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(cooldownEnd.getTime()));
         sendNotification(cooldownEnd.getTimeInMillis());
+
+        updateCoolDown();
     }
 
     public void fillEmptyRecords() {
@@ -194,22 +202,144 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void sendNotification(long notifyTime) {
-        /*Intent intent = new Intent(this, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_stat_name)
-                .setContentTitle("It's Time for a Glass of Water")
-                .setContentText("The cooldown is over.")
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setContentIntent(pendingIntent)
-                .setAutoCancel(true);
-        builder.build();
-         */
         Intent notifyIntent = new Intent(this,Receiver.class);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 4521, notifyIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        alarmManager.set(AlarmManager.RTC_WAKEUP, notifyTime, pendingIntent);
+        alarmManager.set(AlarmManager.RTC, notifyTime, pendingIntent);
+    }
+
+    public void updateCoolDown() {
+        String query = "SELECT drink_date, MAX(drink_time) " +
+                       "FROM wellhydrated_records " +
+                       "WHERE drink_date = (SELECT MAX(drink_date) FROM wellhydrated_records)";
+        Cursor latestRecord = db.rawQuery(query,null);
+        Log.d("updateCoolDown()", "Found " + String.valueOf(latestRecord.getCount()) + " latest records");
+        if (latestRecord.getCount() != 1)
+            // the database is empty
+            return;
+
+        // Move to the first and the only row retrieved
+        latestRecord.moveToNext();
+        String latestDateTime = latestRecord.getString(0) + " " + latestRecord.getString(1);
+        Log.d("updateCoolDown()", "latestDateTime is " + latestDateTime);
+
+        try {
+            Date dateLatest = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(latestDateTime);
+            Calendar calendarLatest = Calendar.getInstance();
+            calendarLatest.setTime(dateLatest);
+
+            Calendar now = Calendar.getInstance();
+
+            calendarLatest.add(Calendar.HOUR_OF_DAY, 1);
+            Log.d("updateCoolDown()", "The current cooldown ends at " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(calendarLatest.getTime()));
+            if (calendarLatest.after(now)) {
+                Log.d("updateCoolDown()", "yes! postive!");
+                // Disable the Drink button
+                findViewById(R.id.button).setEnabled(false);
+
+                // Cancel any old countdown
+                clearCountDownTimer();
+
+                // Set up a new countdown
+                long duration = calendarLatest.getTimeInMillis() - now.getTimeInMillis();
+                Log.d("updateCoolDown()", String.format("duration is %d", duration));
+                countDownTimer = new CountDownTimer(duration, 1000) {
+                    @Override
+                    public void onTick(long millisUntilFinished) {
+                        Log.d("updateCoolDown()", "tick");
+                        TextView textViewCountdown = findViewById(R.id.textViewCountdown);
+                        if (textViewCountdown != null) {
+                            long hour = millisUntilFinished / 1000 / 60 / 60;
+                            long minute = millisUntilFinished / 1000 / 60 % 60;
+                            long second = millisUntilFinished / 1000 % 60;
+
+                            String timeLeft = String.format("%02d:%02d:%02d", hour, minute, second);
+                            Log.d("updateCoolDown()", "onTick: timeLeft is " + timeLeft);
+                            textViewCountdown.setText(String.format(getResources().getString(R.string.countdown), timeLeft));
+                            textViewCountdown.setVisibility(View.VISIBLE);
+
+                        } //else {
+                        //    Do nothing, as the user may not be at the home fragment.
+                        //    When he/she returns to home, the countdown will still be set by another call of updateCoolDown()
+
+                        //    Log.d("updateCoolDown()", "textview is null reference...");
+                        //}
+                    }
+
+                    @Override
+                    public void onFinish() {
+                        View button = findViewById(R.id.button);
+                        if (button != null) {
+                            findViewById(R.id.button).setEnabled(true);
+                            findViewById(R.id.textViewCountdown).setVisibility(View.INVISIBLE);
+                        }
+                        //else {
+                        //    Do nothing, as the user may not be at the home fragment.
+                        //    When he/she returns to home, the button will still be enabled by another call of updateCoolDown()
+                        //}
+
+                    }
+                }.start();
+
+            } else {
+                // Cancel any old countdown
+                clearCountDownTimer();
+
+                // Set up the UI
+                findViewById(R.id.button).setEnabled(true);
+                findViewById(R.id.textViewCountdown).setVisibility(View.INVISIBLE);
+            }
+
+        }
+        catch (ParseException e) {
+            Log.e("updateCoolDown()", "ParseException");
+        }
+    }
+
+    protected void clearCountDownTimer() {
+        if (countDownTimer != null) {
+            countDownTimer.cancel();
+            countDownTimer = null;
+        }
+    }
+
+    protected void resetDB() {
+        // Delete All first
+        db.execSQL("DELETE FROM wellhydrated_records");
+
+        String[][] arr = {
+                {"2021-11-25", "01:30:22"},{"2021-11-25", "05:30:22"},{"2021-11-25", "01:30:22"},{"2021-11-25", "01:30:22"},{"2021-11-25", "01:30:22"},{"2021-11-25", "01:30:22"},{"2021-11-25", "01:30:22"},{"2021-11-25", "01:30:22"},{"2021-11-25", "01:30:22"},
+                {"2021-11-26", "01:30:22"},{"2021-11-26", "01:30:22"},{"2021-11-26", "01:30:22"},{"2021-11-26", "01:30:22"},{"2021-11-26", "01:30:22"},{"2021-11-26", "01:30:22"},{"2021-11-26", "01:30:22"},
+                {"2021-11-27", "01:30:22"},{"2021-11-27", "01:30:22"},{"2021-11-27", "01:30:22"},
+                {"2021-11-28", "01:30:22"},{"2021-11-28", "01:30:22"},{"2021-11-28", "01:30:22"},{"2021-11-28", "01:30:22"},{"2021-11-28", "01:30:22"},{"2021-11-28", "01:30:22"},{"2021-11-28", "01:30:22"},{"2021-11-28", "01:30:22"},
+                {"2021-11-29", "01:30:22"},{"2021-11-29", "01:30:22"},{"2021-11-29", "01:30:22"},{"2021-11-29", "01:30:22"},{"2021-11-29", "01:30:22"},{"2021-11-29", "01:30:22"},{"2021-11-29", "01:30:22"},{"2021-11-29", "01:30:22"},{"2021-11-29", "01:30:22"},
+                {"2021-11-30", "01:30:22"},{"2021-11-30", "01:30:22"},{"2021-11-30", "01:30:22"},{"2021-11-30", "01:30:22"},{"2021-11-30", "01:30:22"},{"2021-11-30", "01:30:22"},{"2021-11-30", "01:30:22"},{"2021-11-30", "01:30:22"},{"2021-11-30", "01:30:22"},{"2021-11-30", "01:30:22"},{"2021-11-30", "01:30:22"},
+                {"2021-12-01", "01:30:22"},{"2021-12-01", "01:30:22"},{"2021-12-01", "01:30:22"},{"2021-12-01", "01:30:22"},{"2021-12-01", "01:30:22"},{"2021-12-01", "01:30:22"},{"2021-12-01", "01:30:22"},{"2021-12-01", "01:30:22"},{"2021-12-01", "01:30:22"},{"2021-12-01", "01:30:22"},{"2021-12-01", "01:30:22"},
+                {"2021-12-02", "01:30:22"},{"2021-12-02", "01:30:22"},{"2021-12-02", "01:30:22"},{"2021-12-02", "01:30:22"},{"2021-12-02", "01:30:22"},{"2021-12-02", "01:30:22"},{"2021-12-02", "01:30:22"},{"2021-12-02", "01:30:22"},{"2021-12-02", "01:30:22"},{"2021-12-02", "01:30:22"},{"2021-12-02", "01:30:22"},{"2021-12-02", "01:30:22"},{"2021-12-02", "01:30:22"},
+                {"2021-12-03", "01:30:22"},{"2021-12-03", "01:30:22"},{"2021-12-03", "01:30:22"},{"2021-12-03", "01:30:22"},{"2021-12-03", "01:30:22"},{"2021-12-03", "01:30:22"},{"2021-12-03", "01:30:22"},{"2021-12-03", "01:30:22"},
+                {"2021-12-04", "01:30:22"},{"2021-12-04", "01:30:22"},{"2021-12-04", "01:30:22"},{"2021-12-04", "01:30:22"},{"2021-12-04", "01:30:22"},{"2021-12-04", "01:30:22"},
+                {"2021-12-05", "01:30:22"},{"2021-12-05", "01:30:22"},{"2021-12-05", "01:30:22"},{"2021-12-05", "01:30:22"},{"2021-12-05", "01:30:22"},{"2021-12-05", "01:30:22"},{"2021-12-05", "01:30:22"},
+                {"2021-12-06", "01:30:22"},{"2021-12-06", "01:30:22"},{"2021-12-06", "01:30:22"},{"2021-12-06", "01:30:22"},{"2021-12-06", "01:30:22"},
+                {"2021-12-07", "01:30:22"},{"2021-12-07", "01:30:22"},{"2021-12-07", "01:30:22"},{"2021-12-07", "01:30:22"},
+                {"2021-12-08", "01:30:22"},{"2021-12-08", "01:30:22"},{"2021-12-08", "01:30:22"},{"2021-12-08", "01:30:22"},
+                {"2021-12-09", "01:30:22"},{"2021-12-09", "01:30:22"},{"2021-12-09", "01:30:22"},{"2021-12-09", "01:30:22"},{"2021-12-09", "01:30:22"},
+                {"2021-12-10", "01:30:22"}, {"2021-12-10", "01:30:22"},{"2021-12-10", "01:30:22"},{"2021-12-10", "01:30:22"},{"2021-12-10", "01:30:22"},{"2021-12-10", "01:30:22"},{"2021-12-10", "01:30:22"},{"2021-12-10", "01:30:22"},{"2021-12-10", "01:30:22"},{"2021-12-10", "01:30:22"},
+                {"2021-12-11", "01:30:22"}, {"2021-12-11", "01:30:22"}, {"2021-12-11", "01:30:22"}, {"2021-12-11", "01:30:22"}, {"2021-12-11", "01:30:22"}, {"2021-12-11", "01:30:22"}, {"2021-12-11", "01:30:22"},
+                {"2021-12-12", "01:30:22"}, {"2021-12-12", "01:30:22"}, {"2021-12-12", "01:30:22"}, {"2021-12-12", "01:30:22"}, {"2021-12-12", "01:30:22"}, {"2021-12-12", "01:30:22"}, {"2021-12-12", "01:30:22"}, {"2021-12-12", "01:30:22"}, {"2021-12-12", "01:30:22"},
+                {"2021-12-13", "01:30:22"}, {"2021-12-13", "03:30:22"}, {"2021-12-13", "05:30:22"}, {"2021-12-13", "08:30:22"}, {"2021-12-13", "10:30:22"}, {"2021-12-13", "15:30:22"}, {"2021-12-13", "19:42:02"}
+        };
+
+        for (int i = 0; i < arr.length; i++) {
+            ContentValues values = new ContentValues();
+            values.put(WellHydratedDBEntries.COLUMN_NAME_DRINK_DATE, arr[i][0]);
+            values.put(WellHydratedDBEntries.COLUMN_NAME_DRINK_TIME, arr[i][1]);
+            values.put(WellHydratedDBEntries.COLUMN_NAME_AMOUNT, 250);
+
+            // Insert a record into the Database
+            db.insert(WellHydratedDBEntries.TABLE_NAME, null, values);
+            //Log.d("DB","One record inserted for " + currentDate + " " + currentTime);
+        }
+
+        Log.d("DB", "Reset ed");
     }
 }

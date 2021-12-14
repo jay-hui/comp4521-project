@@ -2,7 +2,7 @@
     <string name="app_name">WellHydrated</string>
     <string name="button_drink_water">Drink Water</string>
     <string name="label_water_left">You still have %d cups of water left!</string>
-    <string name="toast_drink_water">You drank a cup of water!</string>
+    <string name="toast_drink_water">You drank %dml of water!</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="statistics">Statistics</string>
     <string name="settings">Settings</string>

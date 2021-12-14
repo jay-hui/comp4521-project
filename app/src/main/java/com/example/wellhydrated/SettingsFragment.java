@@ -10,6 +10,7 @@ import android.preference.PreferenceFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -67,6 +68,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             @Override
             public boolean onPreferenceClick(Preference preference) {
                 ((MainActivity) getActivity()).resetDB();
+                Toast.makeText(getContext(), "Restart the app to view changes", Toast.LENGTH_SHORT);
                 return true;
             }
         });

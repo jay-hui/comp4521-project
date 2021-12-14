@@ -45,6 +45,8 @@ public class MainActivity extends AppCompatActivity {
     protected DBHelper dbHelper;
     private SQLiteDatabase db;
 
+    protected boolean isNotificationAllowed = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,6 +55,9 @@ public class MainActivity extends AppCompatActivity {
 
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+
+        isNotificationAllowed = sharedPref.getBoolean("push_noti", true);
+        Log.d("Notfication Allowed", String.valueOf(isNotificationAllowed));
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
@@ -80,6 +85,12 @@ public class MainActivity extends AppCompatActivity {
         // Register the channel with the system
         NotificationManager notificationManager = getSystemService(NotificationManager.class);
         notificationManager.createNotificationChannel(channel);
+
+        if (!isNotificationAllowed) {
+            // Clear previous notification
+            notificationManager.cancel(4521);
+            Log.d("Notification 4521", "Cleaned");
+        }
     }
 
     @Override
@@ -129,7 +140,8 @@ public class MainActivity extends AppCompatActivity {
         //cooldownEnd.add(Calendar.SECOND, 10);
         Log.d("CoolDown", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(cooldownEnd.getTime()));
 
-        sendNotification(cooldownEnd.getTimeInMillis());
+        if (isNotificationAllowed)
+            sendNotification(cooldownEnd.getTimeInMillis());
 
         updateCoolDown();
     }

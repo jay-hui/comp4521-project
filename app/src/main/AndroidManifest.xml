@@ -10,6 +10,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.WellHydrated">
         <activity
+            android:name=".SettingsActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
@@ -18,14 +21,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <receiver
             android:name=".Receiver"
             android:enabled="true"
-            android:exported="false" >
-        </receiver>
+            android:exported="false"></receiver>
+
         <service
             android:name=".NotificationService"
-            android:exported="false" >
-        </service>
+            android:exported="false"></service>
     </application>
+
 </manifest>

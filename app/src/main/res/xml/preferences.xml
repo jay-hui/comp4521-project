@@ -1,4 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-  
+
+    <PreferenceCategory android:title="@string/settings_general">
+        <ListPreference
+            android:defaultValue="0"
+            android:dialogTitle="@string/theme"
+            android:entries="@array/pref_theme"
+            android:entryValues="@array/pref_theme_values"
+            android:key="theme"
+            android:summary="@string/theme_desc"
+            android:title="@string/theme" />
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:dialogTitle="@string/push_noti"
+            android:key="push_noti"
+            android:summary="@string/push_noti_desc"
+            android:title="@string/push_noti" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/settings_testing">
+        <ListPreference
+            android:defaultValue="0"
+            android:dialogTitle="@string/db_reset"
+            android:key="db_reset"
+            android:summary="@string/db_reset_desc"
+            android:title="@string/db_reset" />
+
+        <SwitchPreference
+            android:defaultValue="false"
+            android:dialogTitle="@string/cooldown"
+            android:key="cooldown"
+            android:summary="@string/cooldown_desc"
+            android:title="@string/cooldown" />
+    </PreferenceCategory>
+
 </PreferenceScreen>

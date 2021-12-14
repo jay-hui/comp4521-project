@@ -3,12 +3,14 @@ package com.example.wellhydrated;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
 import android.preference.PreferenceFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -60,6 +62,15 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
-    }
 
+        Preference resetButton = findPreference("db_reset");
+        resetButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                ((MainActivity) getActivity()).resetDB();
+                Toast.makeText(getContext(), "Restart the app to view changes", Toast.LENGTH_SHORT);
+                return true;
+            }
+        });
+    }
 }

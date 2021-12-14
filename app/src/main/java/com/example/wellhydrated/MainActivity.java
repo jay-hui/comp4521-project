@@ -8,6 +8,7 @@ import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.icu.text.SimpleDateFormat;
@@ -44,13 +45,16 @@ public class MainActivity extends AppCompatActivity {
     protected DBHelper dbHelper;
     private SQLiteDatabase db;
 
+    protected boolean isNotificationAllowed = true;
+    protected boolean isCoolDownAllowed = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d("MainActivity", "onCreate");
         setContentView(R.layout.activity_main);
 
-        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+        loadPref();
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
@@ -78,12 +82,29 @@ public class MainActivity extends AppCompatActivity {
         // Register the channel with the system
         NotificationManager notificationManager = getSystemService(NotificationManager.class);
         notificationManager.createNotificationChannel(channel);
+
+        if (!isNotificationAllowed) {
+            // Clear previous notification
+            notificationManager.cancel(4521);
+            Log.d("Notification 4521", "Cleaned");
+        }
     }
 
     @Override
     protected void onDestroy() {
         clearCountDownTimer();
         super.onDestroy();
+    }
+
+    public void loadPref() {
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+
+        isNotificationAllowed = sharedPref.getBoolean("push_noti", true);
+        Log.d("Notfication Allowed", String.valueOf(isNotificationAllowed));
+
+        isCoolDownAllowed = sharedPref.getBoolean("cooldown", true);
+        Log.d("CoolDown Allowed", String.valueOf(isCoolDownAllowed));
     }
 
     public String getHomeInfo() {
@@ -127,9 +148,11 @@ public class MainActivity extends AppCompatActivity {
         //cooldownEnd.add(Calendar.SECOND, 10);
         Log.d("CoolDown", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(cooldownEnd.getTime()));
 
-        sendNotification(cooldownEnd.getTimeInMillis());
+        if (isNotificationAllowed)
+            sendNotification(cooldownEnd.getTimeInMillis());
 
-        updateCoolDown();
+        if (isCoolDownAllowed)
+            updateCoolDown();
     }
 
     public void fillEmptyRecords() {
@@ -162,7 +185,6 @@ public class MainActivity extends AppCompatActivity {
                 db.insert(WellHydratedDBEntries.TABLE_NAME, null, values);
                 Log.d("DB","One empty record inserted for " + pastDate);
             }
-
         }
     }
 

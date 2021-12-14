@@ -18,4 +18,5 @@
     <string name="cancel">Cancel</string>
     <string name="no_record_found">No record found.</string>
     <string name="countdown">%s before next drink</string>
+    <string name="app_description">Every day a poor man gets trapped at the bottom of a dry well.\n\nDrink, drink and drink to fill the well to rescue him.\n\nGet well hydrated, my friend.</string>
 </resources>

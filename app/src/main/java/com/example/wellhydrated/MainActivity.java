@@ -122,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
         cooldownEnd.add(Calendar.HOUR_OF_DAY, 1);
         //For Debug: 10s
         //cooldownEnd.add(Calendar.SECOND, 10);
-        Log.d("Cooldown", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(cooldownEnd.getTime()));
+        Log.d("CoolDown", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(cooldownEnd.getTime()));
 
         sendNotification(cooldownEnd.getTimeInMillis());
 
@@ -202,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
         Intent notifyIntent = new Intent(this,Receiver.class);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 4521, notifyIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        alarmManager.set(AlarmManager.RTC_WAKEUP, notifyTime, pendingIntent);
+        alarmManager.set(AlarmManager.RTC, notifyTime, pendingIntent);
     }
 
     public void updateCoolDown() {
@@ -252,7 +252,7 @@ public class MainActivity extends AppCompatActivity {
 
                             String timeLeft = String.format("%02d:%02d:%02d", hour, minute, second);
                             Log.d("updateCoolDown()", "onTick: timeLeft is " + timeLeft);
-                            textViewCountdown.setText(String.format(getString(R.string.countdown), timeLeft));
+                            textViewCountdown.setText(String.format(getResources().getString(R.string.countdown), timeLeft));
                             textViewCountdown.setVisibility(View.VISIBLE);
 
                         } //else {
@@ -266,8 +266,10 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onFinish() {
                         View button = findViewById(R.id.button);
-                        if (button != null)
+                        if (button != null) {
                             findViewById(R.id.button).setEnabled(true);
+                            findViewById(R.id.textViewCountdown).setVisibility(View.INVISIBLE);
+                        }
                         //else {
                         //    Do nothing, as the user may not be at the home fragment.
                         //    When he/she returns to home, the button will still be enabled by another call of updateCoolDown()

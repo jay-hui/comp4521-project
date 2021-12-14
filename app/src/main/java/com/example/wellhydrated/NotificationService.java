@@ -1,6 +1,7 @@
 package com.example.wellhydrated;
 
 import android.app.IntentService;
+import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Intent;
 
@@ -20,6 +21,8 @@ public class NotificationService extends IntentService {
         super(NAME);
     }
 
+
+
     @Override
     protected void onHandleIntent(@Nullable Intent dummy) {
         Intent intent = new Intent(this, MainActivity.class);
@@ -35,6 +38,8 @@ public class NotificationService extends IntentService {
                 .setAutoCancel(true);
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-        notificationManager.notify(4521, builder.build());
+        Notification notification = builder.build();
+        notificationManager.notify(4521, notification);
+        //startForeground(4521,notification);
     }
 }

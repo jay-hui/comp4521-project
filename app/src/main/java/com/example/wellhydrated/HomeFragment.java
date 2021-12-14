@@ -41,6 +41,8 @@ public class HomeFragment extends Fragment {
         TextView labelWaterAmount = getView().findViewById(R.id.label_water_amount);
         labelWaterAmount.setText(mainActivity.getHomeInfo());
 
+        mainActivity.updateCoolDown();
+
         // Whenever the user switch to home tab, play the animation once
         if (mainActivity.getCupsOfWaterLeft() < 8) {
             Log.d("cupsOfWaterLeft", String.valueOf(mainActivity.getCupsOfWaterLeft()));

@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     private SQLiteDatabase db;
 
     protected boolean isNotificationAllowed = true;
+    protected boolean isCoolDownAllowed = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,11 +54,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d("MainActivity", "onCreate");
         setContentView(R.layout.activity_main);
 
-        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-
-        isNotificationAllowed = sharedPref.getBoolean("push_noti", true);
-        Log.d("Notfication Allowed", String.valueOf(isNotificationAllowed));
+        loadPref();
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
@@ -97,6 +94,17 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         clearCountDownTimer();
         super.onDestroy();
+    }
+
+    public void loadPref() {
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+
+        isNotificationAllowed = sharedPref.getBoolean("push_noti", true);
+        Log.d("Notfication Allowed", String.valueOf(isNotificationAllowed));
+
+        isCoolDownAllowed = sharedPref.getBoolean("cooldown", true);
+        Log.d("CoolDown Allowed", String.valueOf(isCoolDownAllowed));
     }
 
     public String getHomeInfo() {
@@ -143,7 +151,8 @@ public class MainActivity extends AppCompatActivity {
         if (isNotificationAllowed)
             sendNotification(cooldownEnd.getTimeInMillis());
 
-        updateCoolDown();
+        if (isCoolDownAllowed)
+            updateCoolDown();
     }
 
     public void fillEmptyRecords() {
@@ -176,7 +185,6 @@ public class MainActivity extends AppCompatActivity {
                 db.insert(WellHydratedDBEntries.TABLE_NAME, null, values);
                 Log.d("DB","One empty record inserted for " + pastDate);
             }
-
         }
     }
 

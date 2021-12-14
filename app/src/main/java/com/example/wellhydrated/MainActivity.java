@@ -1,7 +1,13 @@
 package com.example.wellhydrated;
 
 import android.animation.ObjectAnimator;
+import android.app.AlarmManager;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.ContentValues;
+import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.icu.text.SimpleDateFormat;
@@ -10,7 +16,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -18,6 +23,8 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -28,6 +35,7 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String CHANNEL_ID = "4521";
     private int cupsOfWaterLeft;
     private TextView labelWaterAmount;
 
@@ -56,6 +64,16 @@ public class MainActivity extends AppCompatActivity {
         cupsOfWaterLeft = calCupsOfWaterLeft();
 
         fillEmptyRecords();
+
+        // Create a notification channel
+        CharSequence name = "WellHydrated Notification Channel";
+        int importance = NotificationManager.IMPORTANCE_HIGH;
+        NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+        channel.setDescription("Reminds the user to drink water when the app cooldown is over.");
+
+        // Register the channel with the system
+        NotificationManager notificationManager = getSystemService(NotificationManager.class);
+        notificationManager.createNotificationChannel(channel);
     }
 
     public String getHomeInfo() {
@@ -91,6 +109,16 @@ public class MainActivity extends AppCompatActivity {
         labelWaterAmount.setText(getHomeInfo());
         Toast toast = Toast.makeText(this, String.format(getResources().getString(R.string.toast_drink_water), 250), Toast.LENGTH_SHORT);
         toast.show();
+
+        // TODO: Cooldown for 1 hour
+
+        Calendar cooldownEnd = Calendar.getInstance();
+        //cooldown.add(Calendar.HOUR_OF_DAY, 1);
+
+        //Debug: 10s
+        cooldownEnd.add(Calendar.SECOND, 10);
+        Log.d("Cooldown", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(cooldownEnd.getTime()));
+        sendNotification(cooldownEnd.getTimeInMillis());
     }
 
     public void fillEmptyRecords() {
@@ -160,5 +188,25 @@ public class MainActivity extends AppCompatActivity {
         anim.setDuration(500);
         anim.setInterpolator(new LinearInterpolator());
         anim.start();
+    }
+
+    public void sendNotification(long notifyTime) {
+        /*Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_stat_name)
+                .setContentTitle("It's Time for a Glass of Water")
+                .setContentText("The cooldown is over.")
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true);
+        builder.build();
+         */
+        Intent notifyIntent = new Intent(this,Receiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 4521, notifyIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        alarmManager.set(AlarmManager.RTC_WAKEUP, notifyTime, pendingIntent);
     }
 }
